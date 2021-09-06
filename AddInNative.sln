@@ -8,12 +8,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AddInNative", "AddInNative.
 		{C36B6ED6-1450-4D72-9DD2-CB82D2ED432B} = {C36B6ED6-1450-4D72-9DD2-CB82D2ED432B}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "1CAddIn", "..\..\1CAddIn\1CAddIn\1CAddIn.csproj", "{C36B6ED6-1450-4D72-9DD2-CB82D2ED432B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C2295AB0-D1E3-4074-BEC4-D2FF87B06F86}"
 	ProjectSection(SolutionItems) = preProject
 		readme.md = readme.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "1CAddIn", "1CAddIn.csproj", "{C36B6ED6-1450-4D72-9DD2-CB82D2ED432B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
