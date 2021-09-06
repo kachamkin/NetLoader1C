@@ -304,7 +304,7 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
         
         if (TV_VT(paParams) != VTYPE_PWSTR || TV_VT(paParams + 1) != VTYPE_PWSTR || lSizeArray > MAXARGS + 2)
         {
-            addError(ADDIN_E_VERY_IMPORTANT, L"AddInNative", L"CreateObject: parameter type mismatch.", -1);
+            addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", L"CreateObject: parameter type mismatch.", -1);
             return false;
         }
 
@@ -319,7 +319,7 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
         {
             errText = new wchar_t[wcslen(L"Failed to create object ") + wcslen(paParams->pwstrVal) + 1];
             wcscpy(errText, L"Failed to create object ");
-            addError(ADDIN_E_VERY_IMPORTANT, L"AddInNative", wcscat(errText, paParams->pwstrVal), -1);
+            addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", wcscat(errText, paParams->pwstrVal), -1);
             return false;
         }
 
@@ -332,7 +332,7 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
 
         if (TV_VT(paParams) != VTYPE_I4 || TV_VT(paParams + 1) != VTYPE_PWSTR || TV_VT(paParams + 2) != VTYPE_PWSTR || lSizeArray > MAXARGS + 4)
         {
-            addError(ADDIN_E_VERY_IMPORTANT, L"AddInNative", L"Parameter type mismatch.", -1);
+            addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", L"InvokeNETObjectMember: parameter type mismatch.", -1);
             return false;
         }
 
@@ -345,7 +345,7 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
         {
             errText = new wchar_t[wcslen(L"Failed to invoke member ") + wcslen((paParams + 1)->pwstrVal) + 1];
             wcscpy(errText, L"Failed to invoke member ");
-            addError(ADDIN_E_VERY_IMPORTANT, L"AddInNative", wcscat(errText, (paParams + 1)->pwstrVal), -1);
+            addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", wcscat(errText, (paParams + 1)->pwstrVal), -1);
             return false;
         }
 
@@ -359,7 +359,7 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
 
         if (TV_VT(paParams) != VTYPE_I4)
         {
-            addError(ADDIN_E_VERY_IMPORTANT, L"AddInNative", L"Parameter type mismatch.", -1);
+            addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", L"GetNETObjectType: parameter type mismatch.", -1);
             return false;
         }
 
