@@ -294,6 +294,7 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
     sVariant** pargs = NULL;
     sVariant* res = NULL;
     wchar_t* errText = NULL;
+    wchar_t* error = NULL;
 
     switch (lMethodNum)
     {
@@ -302,7 +303,7 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
         if (lSizeArray != MAXARGS + 2 || !paParams)
             return false;
         
-        if (TV_VT(paParams) != VTYPE_PWSTR || TV_VT(paParams + 1) != VTYPE_PWSTR || lSizeArray > MAXARGS + 2)
+        if (TV_VT(paParams) != VTYPE_PWSTR || TV_VT(paParams + 1) != VTYPE_PWSTR)
         {
             addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", L"CreateObject: parameter type mismatch.", -1);
             return false;
@@ -314,14 +315,19 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
         for (int i = 0; i < lSizeArray - 2; i++)
             pargs[i] = ToSVariant(paParams + i + 2);
 
-        pvarRetValue->lVal = CreateObject(paParams->pwstrVal, (paParams + 1)->pwstrVal, pargs);
+        pvarRetValue->lVal = CreateObject(paParams->pwstrVal, (paParams + 1)->pwstrVal, pargs, &error);
         if (!pvarRetValue->lVal)
         {
-            errText = new wchar_t[wcslen(L"Failed to create object ") + wcslen(paParams->pwstrVal) + 1];
+            errText = new wchar_t[wcslen(L"Failed to create object ") + wcslen(paParams->pwstrVal) + 1 + (error ? wcslen(error) + 3 : 0)];
             wcscpy(errText, L"Failed to create object ");
-            addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", wcscat(errText, paParams->pwstrVal), -1);
+            addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", wcscat(wcscat(wcscat(errText, paParams->pwstrVal), L":\r\n"), (error ? error : (wchar_t*)L"")), -1);
+
+            delete errText;
+
             return false;
         }
+
+        delete pargs;
 
         return true;
     
@@ -330,26 +336,32 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
         if (lSizeArray != MAXARGS + 4 || !paParams)
             return false;
 
-        if (TV_VT(paParams) != VTYPE_I4 || TV_VT(paParams + 1) != VTYPE_PWSTR || TV_VT(paParams + 2) != VTYPE_PWSTR || lSizeArray > MAXARGS + 4)
+        if (TV_VT(paParams) != VTYPE_I4 || TV_VT(paParams + 1) != VTYPE_PWSTR || TV_VT(paParams + 2) != VTYPE_PWSTR)
         {
             addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", L"InvokeNETObjectMember: parameter type mismatch.", -1);
             return false;
         }
 
-        pargs = new sVariant * [lSizeArray - 4];
+        pargs = new sVariant* [lSizeArray - 4];
         for (int i = 0; i < lSizeArray - 4; i++)
             pargs[i] = ToSVariant(paParams + i + 4);
 
-        res = InvokeNETObjectMember(paParams->lVal, (paParams + 1)->pwstrVal, (paParams + 2)->pwstrVal, (paParams + 3)->vt == VTYPE_BOOL ? (paParams + 3)->bVal : false, pargs);
+        res = InvokeNETObjectMember(paParams->lVal, (paParams + 1)->pwstrVal, (paParams + 2)->pwstrVal, (paParams + 3)->vt == VTYPE_BOOL ? (paParams + 3)->bVal : false, pargs, &error);
         if (!res || res->vt == VTYPE_ERROR)
         {
-            errText = new wchar_t[wcslen(L"Failed to invoke member ") + wcslen((paParams + 1)->pwstrVal) + 1];
+            errText = new wchar_t[wcslen(L"Failed to invoke member ") + wcslen((paParams + 1)->pwstrVal) + 1 + (error ? wcslen(error) + 3 : 0)];
             wcscpy(errText, L"Failed to invoke member ");
-            addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", wcscat(errText, (paParams + 1)->pwstrVal), -1);
+            addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", wcscat(wcscat(wcscat(errText, (paParams + 1)->pwstrVal), L":\r\n"), (error ? error : (wchar_t*)L"")), -1);
+
+            delete errText;
+
             return false;
         }
 
         FromSVariant(res, pvarRetValue);
+
+        delete pargs;
+
         return true;
 
     case eMethGetObjectType:
@@ -364,9 +376,24 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
         }
 
         TV_VT(pvarRetValue) = VTYPE_PWSTR;
-        pvarRetValue->pwstrVal = GetNETObjectType(paParams->lVal);
-        pvarRetValue->wstrLen = wcslen(pvarRetValue->pwstrVal);
-        return true;
+        pvarRetValue->pwstrVal = GetNETObjectType(paParams->lVal, &error);
+
+        if (pvarRetValue->pwstrVal)
+        {
+            pvarRetValue->wstrLen = (uint32_t)wcslen(pvarRetValue->pwstrVal);
+            return true;
+        }
+        else
+        {
+            errText = new wchar_t[wcslen(L"Failed to get object type ") + 1 + (error ? wcslen(error) + 3 : 0)];
+            wcscpy(errText, L"Failed to get object type ");
+            addError(ADDIN_E_VERY_IMPORTANT, L"NETLoader", wcscat(wcscat(errText, L":\r\n"), (error ? error : (wchar_t*)L"")), -1);
+
+            delete errText;
+
+            return false;
+        }
+
 
     default:
         return false;
@@ -375,14 +402,14 @@ bool CAddInNative::CallAsFunc(const long lMethodNum,
      return true;
 }
 
-void CAddInNative::FromSVariant(sVariant* psv, tVariant* pv)
+void CAddInNative::FromSVariant(sVariant* psv, tVariant* pv) noexcept
 {
     pv->vt = psv->vt;
 
     if (pv->vt == VTYPE_PWSTR)
     {
         pv->pwstrVal = psv->pwstrVal;
-        pv->wstrLen = wcslen(pv->pwstrVal);
+        pv->wstrLen = (uint32_t)wcslen(pv->pwstrVal);
     }
    
     if (pv->vt == VTYPE_TM)

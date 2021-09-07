@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Reflection;
-using System.Windows.Forms;
 
 namespace _1CAddIn
 {
@@ -34,10 +33,14 @@ namespace _1CAddIn
         //parg — указатель на массив указателей на аргументы конструктора в формате sVariant.
         //Вызывается из внешней компоненты.
         [DllExport]
-        public static int CreateObject(long ptype, long pargTypes, long parg)
+        public static int CreateObject(long ptype, long pargTypes, long parg, ref long perror)
         {
+
             if (!isEnabled)
+            {
+                perror = (long)Marshal.StringToCoTaskMemAuto("CreateObject: assembly is not initialized!");
                 return 0;
+            }
 
             try
             {
@@ -47,13 +50,22 @@ namespace _1CAddIn
 
                 Type t = Type.GetType(type);
                 if (!IsObject(t))
+                {
+                    perror = (long)Marshal.StringToCoTaskMemAuto("CreateObject: type \"" + type + "\" is not an object type and cannot be instantiated!");
                     return 0;
+                }
 
                 Type[] t_argTypes = ParseTypes(argTypes);
                 if (t_argTypes == null)
+                {
+                    perror = (long)Marshal.StringToCoTaskMemAuto("CreateObject: failed to parse argument types string \"" + argTypes + "\"!");
                     return 0;
+                }
                 if (t_argTypes.Length > MAXARGS)
+                {
+                    perror = (long)Marshal.StringToCoTaskMemAuto("CreateObject: number of arguments is greater than max possible (max = " + MAXARGS + "!");
                     return 0;
+                }
 
                 long[] pargs = new long[t_argTypes.Length];
                 Marshal.Copy((IntPtr)parg, pargs, 0, t_argTypes.Length);
@@ -65,14 +77,18 @@ namespace _1CAddIn
                 ConstructorInfo constructor = t.GetConstructor(t_argTypes);
 
                 if (constructor == null)
+                {
+                    perror = (long)Marshal.StringToCoTaskMemAuto("CreateObject: failed to get constructor for type \"" + type + "\" with arguments of types \"" + argTypes + "\"!");
                     return 0;
+                }
 
                 global.Add(constructor.Invoke(args));
                 return global.Count;
 
             }
-            catch
+            catch (Exception ex)
             {
+                perror = (long)Marshal.StringToCoTaskMemAuto("CreateObject: exception occured!\r\n\r\n" + ex);
                 return 0;
             }
 
@@ -86,10 +102,13 @@ namespace _1CAddIn
         //setProperty — если true, вызываем установку значения свойства. Значение передается в первом элементе parg. В противном случае мы вызываем метод или получаем значение свойства.
         //Вызывается из внешней компоненты.
         [DllExport]
-        public static long InvokeNETObjectMember(int objectNum, long pname, long pargTypes, bool setProperty, long parg)
+        public static long InvokeNETObjectMember(int objectNum, long pname, long pargTypes, bool setProperty, long parg, ref long perror)
         {
             if (!isEnabled)
+            {
+                perror = (long)Marshal.StringToCoTaskMemAuto("InvokeNETObjectMember: assembly is not initialized!");
                 return 0;
+            }
 
             sVariant v = new sVariant();
             v.vt = ENUMVAR.VTYPE_ERROR;
@@ -100,9 +119,15 @@ namespace _1CAddIn
                 string argTypes = Marshal.PtrToStringAuto((IntPtr)pargTypes);
                 Type[] t_argTypes = ParseTypes(argTypes);
                 if (t_argTypes == null)
+                {
+                    perror = (long)Marshal.StringToCoTaskMemAuto("InvokeNETObjectMember: failed to parse argument types string \"" + argTypes + "\"!");
                     return 0;
+                }
                 if (t_argTypes.Length > MAXARGS)
+                {
+                    perror = (long)Marshal.StringToCoTaskMemAuto("InvokeNETObjectMember: number of arguments is greater than max possible (max = " + MAXARGS + "!");
                     return 0;
+                }
 
                 long[] pargs = new long[t_argTypes.Length];
                 Marshal.Copy((IntPtr)parg, pargs, 0, t_argTypes.Length);
@@ -126,8 +151,9 @@ namespace _1CAddIn
                 return (long)ptr;
 
             }
-            catch
+            catch (Exception ex)
             {
+                perror = (long)Marshal.StringToCoTaskMemAuto("InvokeNETObjectMember: exception occured!\r\n\r\n" + ex);
                 return 0;
             }
         }
@@ -201,15 +227,16 @@ namespace _1CAddIn
         //Возвращается указатель LPWSTR
         //Вызывается из внешней компоненты.
         [DllExport]
-        public static long GetNETObjectType(int objectNum)
+        public static long GetNETObjectType(int objectNum, ref long perror)
         {
             try
             {
                 return (long)Marshal.StringToCoTaskMemAuto(global[objectNum - 1].GetType().FullName);
 
             }
-            catch
+            catch (Exception ex)
             {
+                perror = (long)Marshal.StringToCoTaskMemAuto("GetNETObjectType: exception occured!\r\n\r\n" + ex);
                 return 0;
             }
         }

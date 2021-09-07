@@ -31,12 +31,12 @@ extern "C" bool LoadAssembly();
 // Создание объекта типа pType;
 //pargTypes — типы аргументов конструктора строкой с разделителем ";".
 //pargs — указатель на массив указателей на аргументы конструктора.
-extern "C" int CreateObject(wchar_t* pType, wchar_t* pargTypes, sVariant** pargs);
+extern "C" int CreateObject(wchar_t* pType, wchar_t* pargTypes, sVariant** pargs, wchar_t** error);
 
 //Получение строкового представления для типа объекта (fully qualified, как в Type.FullName).
 //objectNum — номер обїекта в глобальном кєше.
 //Возвращается указатель LPWSTR
-extern "C" wchar_t* GetNETObjectType(int objectNum);
+extern "C" wchar_t* GetNETObjectType(int objectNum, wchar_t** error);
 
 //Вызов метода управляемого объекта или получение/установка значения его свойства.
 //objectNum — номер объекта в глобальном кэше.
@@ -44,7 +44,7 @@ extern "C" wchar_t* GetNETObjectType(int objectNum);
 //pargTypes — типы аргументов конструктора строкой с разделителем ";". Указатель LPWSTR.
 //pargs — указатель на массив указателей на аргументы конструктора в формате sVariant.
 //setProperty — если true, вызываем установку значения свойства. Значение передается в первом элементе parg. В противном случае мы вызываем метод или получаем значение свойства.
-extern "C" sVariant* InvokeNETObjectMember(int objectNum, wchar_t* pname, wchar_t* pargTypes, bool setProperty, sVariant** pargs);
+extern "C" sVariant* InvokeNETObjectMember(int objectNum, wchar_t* pname, wchar_t* pargTypes, bool setProperty, sVariant** pargs, wchar_t** error);
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CAddInNative
@@ -102,9 +102,9 @@ private:
         const wchar_t* descriptor, long code);
 
     // Приведение типа VARIANT к укороченному
-    sVariant* ToSVariant(tVariant* ptVar);
+    sVariant* CAddInNative::ToSVariant(tVariant* ptVar);
     // Получение tVariant из sVariant
-    void FromSVariant(sVariant* psv, tVariant* pv);
+    void FromSVariant(sVariant* psv, tVariant* pv) noexcept;
 
     // Attributes
     IAddInDefBase* m_iConnect;
