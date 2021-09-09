@@ -5,13 +5,13 @@ using System.Runtime.InteropServices;
 // Общие сведения об этой сборке предоставляются следующим набором
 // набора атрибутов. Измените значения этих атрибутов для изменения сведений,
 // связанные со сборкой.
-[assembly: AssemblyTitle("1CAddIn")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle(".NET Loader for 1C")]
+[assembly: AssemblyDescription(".NET Loader for 1C")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("1CAddIn")]
-[assembly: AssemblyCopyright("Copyright ©  2021")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCompany("Andrey Kachamkin")]
+[assembly: AssemblyProduct(".NET Loader for 1C")]
+[assembly: AssemblyCopyright("Copyright ©  2021 Andrey Kachamkin")]
+[assembly: AssemblyTrademark(".NET Loader for 1C")]
 [assembly: AssemblyCulture("")]
 
 // Установка значения False для параметра ComVisible делает типы в этой сборке невидимыми
