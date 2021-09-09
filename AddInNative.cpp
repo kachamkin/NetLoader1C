@@ -19,9 +19,9 @@ static const wchar_t* g_MethodNames[] = {
 };
 
 static const wchar_t* g_MethodNamesRu[] = {
-    L"СоздатьОбъект",
-    L"ПолучитьТипОбъекта",
-    L"ВызватьМетодИлиСвойство"
+    L"РЎРѕР·РґР°С‚СЊРћР±СЉРµРєС‚",
+    L"РџРѕР»СѓС‡РёС‚СЊРўРёРїРћР±СЉРµРєС‚Р°",
+    L"Р’С‹Р·РІР°С‚СЊРњРµС‚РѕРґРР»РёРЎРІРѕР№СЃС‚РІРѕ"
 };
 
 static const wchar_t g_kClassNames[] = L"CAddInNative"; //|OtherClass1|OtherClass2";
